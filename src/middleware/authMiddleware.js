@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'change_this';
 
 function requireAuth(req, res, next) {
@@ -15,39 +16,3 @@ function requireAuth(req, res, next) {
 }
 
 module.exports = { requireAuth };
-
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
-
-function authMiddleware(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) return res.status(401).json({ error: "Missing token" });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Invalid token" });
-    req.user = user;
-    next();
-  });
-}
-
-module.exports = authMiddleware;
-
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
-
-function authMiddleware(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) return res.status(401).json({ error: "Missing token" });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Invalid token" });
-    req.user = user;
-    next();
-  });
-}
-
-module.exports = authMiddleware;

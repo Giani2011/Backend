@@ -2,11 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const cors = require("cors");
-app.use(cors({
-  origin: "https://frontend-three-alpha-66.vercel.app",
-  credentials: true
-}));
 const rateLimit = require('express-rate-limit');
+const path = require('path');
+const fs = require('fs');
+const db = require('./src/db');
 
 const authRoutes = require('./src/routes/auth');
 
@@ -15,8 +14,15 @@ app.use(helmet());
 app.use(express.json());
 
 // CORS - set origin to your frontend during dev e.g. http://localhost:5500
+const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // non-browser or same-origin
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
@@ -30,6 +36,19 @@ app.use('/api/auth', authRoutes);
 
 app.get('/api/ping', (_req, res) => res.json({ ok: true, time: new Date() }));
 
+// Initialize database (create tables if they don't exist)
+(async function init() {
+  try {
+    const sqlPath = path.join(__dirname, 'migrations', 'create_users.sql');
+    if (fs.existsSync(sqlPath)) {
+      const sql = fs.readFileSync(sqlPath, 'utf8');
+      await db.query(sql);
+      console.log('Database initialized');
+    }
+  } catch (e) {
+    console.error('Database init error', e);
+  }
+})();
+
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening on ${port}`));
-app.use(cors());
