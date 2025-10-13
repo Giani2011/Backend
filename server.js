@@ -1,7 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
-const cors = require('cors');
+const cors = require("cors");
+app.use(cors({
+  origin: "https://frontend-three-alpha-66.vercel.app",
+  credentials: true
+}));
 const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./src/routes/auth');
