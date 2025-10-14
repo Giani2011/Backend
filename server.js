@@ -17,7 +17,7 @@ app.use(express.json());
 const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // non-browser or same-origin
+    if (!origin || origin === 'null') return callback(null, true); // non-browser, same-origin, or file://
     if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
