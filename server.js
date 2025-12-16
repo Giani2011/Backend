@@ -4,6 +4,15 @@ import dotenv from 'dotenv';
 import pool from './src/db.js';
 import authRoutes from './src/routes/auth.js';
 
+// ADD THESE LINES AT THE VERY TOP OF server.js
+console.log('=== DEBUG START ===');
+console.log('1. Node version:', process.version);
+console.log('2. NODE_ENV:', process.env.NODE_ENV);
+console.log('3. PORT:', process.env.PORT);
+console.log('4. DATABASE_URL exists?:', process.env.DATABASE_URL ? 'YES' : 'NO');
+console.log('5. Current directory:', process.cwd());
+console.log('6. Files in directory:', require('fs').readdirSync('.').join(', '));
+
 dotenv.config();
 
 const app = express();

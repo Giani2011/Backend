@@ -1,37 +1,40 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
+console.log('=== DB INIT START ===');
+
 let pool;
-const connectionString = process.env.DATABASE_URL;
-
-// Add to the VERY TOP of server.js
-console.log('Environment check:', {
-  NODE_ENV: process.env.NODE_ENV,
-  PORT: process.env.PORT,
-  DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not Set',
-  NODE_VERSION: process.version
-});
-
-if (connectionString) {
-  console.log('✅ Database URL found. Creating pool...');
-  pool = new Pool({
-    connectionString: connectionString,
-    ssl: { rejectUnauthorized: false } // Required for Render PostgreSQL
-  });
-} else {
-  console.warn('⚠️ DATABASE_URL not set. Database functionality disabled.');
-  // Create a dummy pool object that won't crash your app
+try {
+  if (!process.env.DATABASE_URL) {
+    console.warn('⚠️ WARNING: DATABASE_URL is not set. Using dummy database.');
+    pool = {
+      query: () => Promise.reject(new Error('Database not configured')),
+      connect: () => Promise.reject(new Error('Database not configured')),
+      end: () => Promise.resolve()
+    };
+  } else {
+    console.log('✅ DATABASE_URL found, creating pool...');
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    });
+    
+    // Test connection but DON'T crash if it fails
+    pool.query('SELECT 1 as test').then(() => {
+      console.log('✅ Database test query succeeded');
+    }).catch(err => {
+      console.warn('⚠️ Database test query failed (non-fatal):', err.message);
+    });
+  }
+} catch (error) {
+  console.error('❌ ERROR in db.js initialization:', error.message);
+  // Create dummy pool even if Pool constructor fails
   pool = {
-    query: () => {
-      console.error('❌ Attempted to use database, but DATABASE_URL is not configured.');
-      return Promise.reject(new Error('Database not configured'));
-    },
-    connect: () => {
-      console.error('❌ Attempted to connect to database, but DATABASE_URL is not configured.');
-      return Promise.reject(new Error('Database not configured'));
-    },
+    query: () => Promise.reject(new Error('Database initialization failed')),
+    connect: () => Promise.reject(new Error('Database initialization failed')),
     end: () => Promise.resolve()
   };
 }
 
+console.log('=== DB INIT COMPLETE ===');
 export default pool;
